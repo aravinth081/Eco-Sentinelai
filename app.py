@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException, Body
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse   # ✅ ADDED
 from contextlib import asynccontextmanager
 import os
 import asyncio
@@ -100,7 +101,7 @@ async def sync_with_firebase():
 
 # --- FIXED LIFESPAN ---
 @asynccontextmanager
-async def lifespan(app_instance: FastAPI):  # renamed
+async def lifespan(app_instance: FastAPI):
     print("EcoSentinel AI started")
     try:
         asyncio.create_task(sync_with_firebase())
@@ -125,13 +126,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-# --- ROUTES ---
+# 🔥 IMPORTANT CHANGE HERE 👇
 @app.get("/")
 def root():
-    return {"status": "EcoSentinel AI Running 🚀"}
+    return FileResponse("index.html")   # ✅ UI SHOW
 
-
+# --- API ROUTES ---
 @app.get("/api/state")
 async def get_state():
     return current_state
@@ -177,5 +177,5 @@ async def chat(body: dict = Body(...)):
     return {"answer": answer}
 
 
-# --- STATIC FIX ---
+# --- STATIC FILES ---
 app.mount("/static", StaticFiles(directory=".", html=True), name="static")
